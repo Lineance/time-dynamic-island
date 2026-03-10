@@ -1,0 +1,7 @@
+#include <windows.h>
+
+// 应用程序清单（用于 Windows 11 兼容性）
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
+
+// 图标资源（可选）
+// IDI_APP_ICON ICON "app.ico"

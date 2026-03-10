@@ -1,0 +1,48 @@
+# Build directory
+build/
+cmake-build-*/
+DynamicIsland.exe
+
+# IDE files
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Compiled files
+*.obj
+*.o
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.map
+*.res
+
+# Temporary files
+*.tmp
+*.log
+*.idb
+*.ipdb
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Windows 缩略图缓存
+Thumbs.db
+
+# 系统文件
+.DS_Store
+desktop.ini
+
+# 备份文件
+*.bak
+*~
