@@ -1,7 +1,22 @@
-# Build directory
+# Build directories
 build/
 cmake-build-*/
-DynamicIsland.exe
+bin/
+obj/
+
+# Object files
+*.obj
+*.o
+*.lib
+*.a
+*.ilk
+*.pdb
+
+# Executables (ensure none are created)
+*.exe
+*.dll
+*.so
+*.dylib
 
 # IDE files
 .vscode/
@@ -11,23 +26,14 @@ DynamicIsland.exe
 *.userosscache
 *.sln.docstates
 
-# Compiled files
-*.obj
-*.o
-*.lib
-*.dll
-*.exe
-*.pdb
-*.ilk
-*.exp
-*.map
-*.res
-
 # Temporary files
 *.tmp
 *.log
 *.idb
 *.ipdb
+*.exp
+*.map
+*.res
 
 # CMake files
 CMakeCache.txt
@@ -36,13 +42,13 @@ cmake_install.cmake
 Makefile
 compile_commands.json
 
-# Windows 缩略图缓存
+# Windows thumbnail cache
 Thumbs.db
 
-# 系统文件
+# System files
 .DS_Store
 desktop.ini
 
-# 备份文件
+# Backup files
 *.bak
 *~

@@ -1,56 +1,46 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo   灵动岛 Dynamic Island - 构建脚本
+echo   Dynamic Island - Build Library
 echo ========================================
 echo.
 
-REM 检查是否指定了构建类型
-if "%1"=="" (
-    set BUILD_TYPE=Release
-) else (
-    set BUILD_TYPE=%1
-)
+REM Find Visual Studio
+set VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+for /f "usebackq tokens=*" %%i in (`%VSWHERE% -latest -requires Microsoft.Component.MSBuild -property installationPath`) do set VSINSTALLDIR=%%i
 
-echo 构建类型：%BUILD_TYPE%
-echo.
-
-REM 创建构建目录
-if not exist build mkdir build
-cd build
-
-REM 配置 CMake
-echo [1/3] 配置 CMake...
-cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
-if errorlevel 1 (
-    echo.
-    echo 错误：CMake 配置失败！
-    cd ..
-    exit /b 1
-)
+REM Set up VC environment
+call "%VSINSTALLDIR%\VC\Auxiliary\Build\vcvarsall.bat" amd64
 
 echo.
-echo [2/3] 编译项目...
-cmake --build . --config %BUILD_TYPE%
-if errorlevel 1 (
-    echo.
-    echo 错误：编译失败！
-    cd ..
-    exit /b 1
-)
-
+echo Compiler: cl.exe
 echo.
-echo [3/3] 复制可执行文件...
-if exist bin\%BUILD_TYPE%\DynamicIsland.exe (
-    copy bin\%BUILD_TYPE%\DynamicIsland.exe ..\DynamicIsland.exe >nul
-    echo 成功！可执行文件已复制到项目根目录
-    echo 文件位置：%~dp0DynamicIsland.exe
-) else (
-    echo 警告：未找到可执行文件
-)
 
-cd ..
+REM Create output directory for object files only
+if not exist obj mkdir obj
+
+REM Compile to object file only (no executable)
+echo [1/1] Compiling main.cpp to object file...
+cl /c /std:c++17 /O2 /EHsc /W3 /nologo /DUNICODE /D_UNICODE /DNOMINMAX /DWIN32_LEAN_AND_MEAN /Fo:obj\main.obj src\main.cpp
+if errorlevel 1 goto error
+
 echo.
 echo ========================================
-echo   构建完成！
+echo   Compilation SUCCESSFUL!
 echo ========================================
+echo.
+echo Output: obj\main.obj (object file only)
+echo No executable was created.
+echo.
+goto end
+
+:error
+echo.
+echo ========================================
+echo   Compilation FAILED!
+echo ========================================
+echo.
+del obj\main.obj 2>nul
+exit /b 1
+
+:end
