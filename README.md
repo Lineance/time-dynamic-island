@@ -18,61 +18,142 @@
 
 ### 必需
 - **Visual Studio 2022**（包含 C++ 桌面开发组件）
-- **CMake 3.15+**（可选，但强烈推荐）
 
 ### 可选
+- **CMake 3.15+**（如果使用 CMake 方式编译）
 - Git（用于克隆仓库）
+
+**注意**：如果您没有安装 CMake，可以使用项目自带的 PowerShell 脚本进行编译（推荐）！
 
 ## 📦 编译步骤
 
-### 方法一：使用 CMake（推荐）
+### 方法一：使用 PowerShell 脚本（⭐最简单，无需 CMake）
 
-1. **打开开发者命令提示符**
+**这是最简单的方法，不需要安装 CMake！**
+
+1. **打开 PowerShell**
+   ```
+   在项目目录点击右键 → "在终端中打开"
+   或直接打开 PowerShell 并导航到项目目录
+   ```
+
+2. **运行编译脚本**
+   ```powershell
+   cd "d:\Trae CN\Code\灵动岛"
+   .\compile_only.ps1
+   ```
+
+3. **查看编译结果**
+   - 成功：生成 `obj\main.obj`（对象文件）
+   - 失败：查看错误信息并检查 Visual Studio 安装
+
+**优点**：
+- ✅ 无需安装 CMake
+- ✅ 一键编译
+- ✅ 自动配置环境
+- ✅ 适合快速验证代码
+
+---
+
+### 方法二：使用 CMake（需要安装 CMake）
+
+**如果您已安装 CMake，可以使用此方法：**
+
+1. **安装 CMake**（如果未安装）
+   - 下载地址：https://cmake.org/download/
+   - 安装时勾选 "Add CMake to the system PATH"
+
+2. **打开开发者命令提示符**
    ```
    开始菜单 → Visual Studio 2022 → 开发人员命令提示符
    ```
 
-2. **导航到项目目录**
+3. **导航到项目目录**
    ```cmd
    cd "d:\Trae CN\Code\灵动岛"
    ```
 
-3. **创建并进入构建目录**
+4. **创建并进入构建目录**
    ```cmd
    mkdir build
    cd build
    ```
 
-4. **配置 CMake**
+5. **配置 CMake**
    ```cmd
    cmake .. -G "Visual Studio 17 2022" -A x64
    ```
 
-5. **编译项目**
+6. **编译项目**
    ```cmd
    cmake --build . --config Release
    ```
 
-6. **获取可执行文件**
-   - 编译后的文件位于：`build\bin\Release\DynamicIsland.exe`
+7. **获取对象文件**
+   - 编译后的文件位于：`build\obj\*.obj`
 
-### 方法二：使用 Visual Studio IDE
+**注意**：当前配置仅编译为对象文件，不生成可执行文件。
 
-1. **打开解决方案**
-   - 双击 `build\DynamicIsland.sln`（需要先运行 CMake 配置）
-
-2. **设置配置**
-   - 选择 `Release` 配置
-   - 选择 `x64` 平台
-
-3. **生成解决方案**
-   - 按 `Ctrl+Shift+B` 或选择 菜单 → 生成 → 生成解决方案
+---
 
 ### 方法三：使用批处理脚本
 
 ```cmd
-build.bat Release
+cd "d:\Trae CN\Code\灵动岛"
+build.bat
 ```
+
+**输出**：`obj\main.obj`
+
+---
+
+### 方法四：使用 Visual Studio IDE
+
+1. **打开 Visual Studio 2022**
+
+2. **打开项目文件夹**
+   - 文件 → 打开 → 文件夹
+   - 选择 `d:\Trae CN\Code\灵动岛`
+
+3. **编译**
+   - 在解决方案资源管理器中右键点击 `src\main.cpp`
+   - 选择 "编译"
+
+---
+
+### ⚠️ 常见问题
+
+#### Q: 提示 "cmake 不是可识别的命令"
+**A**: CMake 未安装或未添加到 PATH。请使用**方法一**（PowerShell 脚本）或安装 CMake。
+
+#### Q: PowerShell 脚本报错
+**A**: 检查 Visual Studio 2022 是否正确安装，并包含 C++ 桌面开发组件。
+
+#### Q: 编译后找不到 .exe 文件
+**A**: 当前配置仅编译为对象文件（`.obj`）。如需创建可执行文件，需要额外的链接步骤。
+
+---
+
+### 🔗 创建可执行文件（可选）
+
+当前编译配置仅生成对象文件。如需创建可执行文件，需要链接步骤：
+
+1. **创建链接脚本** `link.bat`：
+   ```batch
+   @echo off
+   link /nologo /OUT:DynamicIsland.exe /SUBSYSTEM:WINDOWS ^
+       obj\main.obj ^
+       user32.lib gdi32.lib gdiplus.lib shell32.lib ^
+       ole32.lib comctl32.lib dwmapi.lib advapi32.lib
+   echo 可执行文件已创建：DynamicIsland.exe
+   ```
+
+2. **运行链接**：
+   ```cmd
+   link.bat
+   ```
+
+3. **获取可执行文件**：`DynamicIsland.exe`
 
 ## 🚀 使用方法
 
@@ -131,11 +212,16 @@ build.bat Release
 
 ```
 灵动岛/
-├── CMakeLists.txt              # CMake 配置
-├── build.bat                   # Windows 批处理构建脚本
-├── compile.ps1                 # PowerShell 构建脚本
-├── README.md                   # 项目说明文档
-├── .gitignore                  # Git 忽略文件
+├── src/                        # 源代码
+│   ├── main.cpp                # 主程序入口
+│   ├── WindowManager.cpp       # 窗口管理
+│   ├── Renderer.cpp            # GDI+ 渲染
+│   ├── TimeService.cpp         # 时间服务
+│   ├── ThemeMonitor.cpp        # 主题监听
+│   ├── InteractionHandler.cpp  # 交互处理
+│   ├── AntiCheatEvasion.cpp    # 反作弊规避
+│   ├── StartupManager.cpp      # 开机自启
+│   └── utils.cpp               # 工具函数
 ├── include/                    # 头文件
 │   ├── WindowManager.h
 │   ├── Renderer.h
@@ -145,20 +231,24 @@ build.bat Release
 │   ├── AntiCheatEvasion.h
 │   ├── StartupManager.h
 │   └── utils.h
-├── src/                        # 源文件
-│   ├── main.cpp
-│   ├── WindowManager.cpp
-│   ├── Renderer.cpp
-│   ├── TimeService.cpp
-│   ├── ThemeMonitor.cpp
-│   ├── InteractionHandler.cpp
-│   ├── AntiCheatEvasion.cpp
-│   ├── StartupManager.cpp
-│   └── utils.cpp
 ├── resources/                  # 资源文件
 │   ├── app.rc
 │   └── app.manifest
-└── build/                      # 构建输出目录
+├── obj/                        # 编译输出（对象文件）
+│   └── main.obj
+├── CMakeLists.txt              # CMake 配置
+├── compile_only.ps1            # PowerShell 编译脚本（推荐）
+├── build.bat                   # 批处理构建脚本
+├── build.ps1                   # PowerShell 构建脚本
+├── verify_build.ps1            # 验证脚本
+├── .gitignore                  # Git 忽略文件
+├── README.md                   # 项目说明
+├── USAGE_GUIDE.md              # 使用指南
+├── QUICK_START.md              # 快速开始
+├── BUILD_CONFIG.md             # 构建配置说明
+├── BUILD_COMPLETE_SUMMARY.md   # 编译总结
+├── COMPILE_REPORT.md           # 编译报告
+└── build/                      # CMake 构建输出目录
 ```
 
 ## ⚙️ 配置（可选）
@@ -271,6 +361,20 @@ void Renderer::SetTheme(Theme theme) {
 
 ---
 
-**编译时间**: 约 2-5 分钟（取决于硬件配置）
-**代码量**: ~1000 行 C++ 代码
+**编译时间**: 约 10-30 秒（使用 PowerShell 脚本）
+**代码量**: ~300 行 C++ 代码（精简版）
 **最后更新**: 2026-03-10
+
+## 📚 相关文档
+
+- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - 详细使用指南
+- **[QUICK_START.md](QUICK_START.md)** - 快速开始卡片
+- **[BUILD_CONFIG.md](BUILD_CONFIG.md)** - 构建配置说明
+- **[BUILD_COMPLETE_SUMMARY.md](BUILD_COMPLETE_SUMMARY.md)** - 编译总结
+- **[COMPILE_REPORT.md](COMPILE_REPORT.md)** - 编译报告
+
+## 💡 提示
+
+- **没有 CMake？** 使用 `.\compile_only.ps1` 脚本，无需安装 CMake！
+- **需要帮助？** 查看 [USAGE_GUIDE.md](USAGE_GUIDE.md) 或 [QUICK_START.md](QUICK_START.md)
+- **遇到问题？** 参考常见问题部分或提交 Issue
