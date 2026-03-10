@@ -1,3 +1,6 @@
+// Dynamic Island - Source Code
+// Compile-only build (no executable)
+
 #include <windows.h>
 #include <shellapi.h>
 #include <gdiplus.h>
@@ -5,8 +8,6 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
-#include <functional>
-#include <vector>
 
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -18,7 +19,7 @@
 
 using namespace Gdiplus;
 
-// 全局变量
+// Global variables
 HWND g_hwnd = nullptr;
 ULONG_PTR g_gdiplusToken = 0;
 bool g_use24Hour = true;
@@ -30,7 +31,7 @@ const int NORMAL_HEIGHT = 60;
 const int EXPANDED_WIDTH = 240;
 const int EXPANDED_HEIGHT = 72;
 
-// 前向声明
+// Forward declarations
 void RenderWindow();
 void UpdateWindowSize(int width, int height);
 std::wstring GetTimeString();
@@ -39,7 +40,7 @@ void OpenTimeSettings();
 COLORREF GetBackgroundColor();
 COLORREF GetTextColor();
 
-// 获取系统主题
+// Check system theme
 bool IsLightTheme() {
     DWORD value = 1;
     HKEY hKey;
@@ -47,18 +48,18 @@ bool IsLightTheme() {
             L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
             0, KEY_READ, &hKey) == ERROR_SUCCESS) {
         DWORD size = sizeof(value);
-        RegQueryValueExW(hKey, L"AppsUseLightTheme", nullptr, nullptr, 
+        RegQueryValueExW(hKey, L"AppsUseLightTheme", NULL, NULL, 
                         reinterpret_cast<LPBYTE>(&value), &size);
         RegCloseKey(hKey);
     }
     return value == 1;
 }
 
-// 获取时间字符串
+// Get time string
 std::wstring GetTimeString() {
     auto now = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::to_time_t(now);
-    std::tm tm;
+    struct tm tm;
     localtime_s(&tm, &time);
     
     std::wstringstream wss;
@@ -73,28 +74,28 @@ std::wstring GetTimeString() {
     return wss.str();
 }
 
-// 切换时间格式
+// Toggle time format
 void ToggleTimeFormat() {
     g_use24Hour = !g_use24Hour;
     RenderWindow();
 }
 
-// 打开时间设置
+// Open time settings
 void OpenTimeSettings() {
-    ShellExecuteW(nullptr, L"open", L"control.exe", L"timedate.cpl", nullptr, SW_SHOW);
+    ShellExecuteW(NULL, L"open", L"control.exe", L"timedate.cpl", NULL, SW_SHOW);
 }
 
-// 获取背景颜色
+// Get background color
 COLORREF GetBackgroundColor() {
     return IsLightTheme() ? RGB(255, 255, 255) : RGB(0, 0, 0);
 }
 
-// 获取文字颜色
+// Get text color
 COLORREF GetTextColor() {
     return IsLightTheme() ? RGB(0, 0, 0) : RGB(255, 255, 255);
 }
 
-// 更新窗口大小
+// Update window size
 void UpdateWindowSize(int width, int height) {
     g_width = width;
     g_height = height;
@@ -108,19 +109,19 @@ void UpdateWindowSize(int width, int height) {
                  SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-// 渲染窗口
+// Render window
 void RenderWindow() {
     HDC hdc = GetDC(g_hwnd);
     HDC memDC = CreateCompatibleDC(hdc);
     HBITMAP memBitmap = CreateCompatibleBitmap(hdc, g_width, g_height);
     HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
     
-    // GDI+ 渲染
+    // GDI+ rendering
     Graphics graphics(memDC);
     graphics.SetSmoothingMode(SmoothingModeAntiAlias);
     graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
     
-    // 绘制椭圆背景
+    // Draw ellipse background
     Color bgColor(200, 
         GetRValue(GetBackgroundColor()),
         GetGValue(GetBackgroundColor()),
@@ -132,7 +133,7 @@ void RenderWindow() {
                (REAL)(g_height - 4));
     graphics.FillEllipse(&bgBrush, rect);
     
-    // 绘制时间文本
+    // Draw time text
     std::wstring timeStr = GetTimeString();
     Color textColor(255,
         GetRValue(GetTextColor()),
@@ -152,17 +153,17 @@ void RenderWindow() {
     
     graphics.DrawString(timeStr.c_str(), -1, &font, PointF(x, y), &textBrush);
     
-    // 复制到屏幕
+    // Copy to screen
     BitBlt(hdc, 0, 0, g_width, g_height, memDC, 0, 0, SRCCOPY);
     
-    // 清理
+    // Cleanup
     SelectObject(memDC, oldBitmap);
     DeleteObject(memBitmap);
     DeleteDC(memDC);
     ReleaseDC(g_hwnd, hdc);
 }
 
-// 窗口过程
+// Window procedure
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
     case WM_PAINT: {
@@ -208,7 +209,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     
     case WM_SETCURSOR: {
         if (LOWORD(lParam) == HTCLIENT) {
-            SetCursor(LoadCursor(nullptr, IDC_HAND));
+            SetCursor(LoadCursor(NULL, IDC_HAND));
             return TRUE;
         }
         break;
@@ -222,14 +223,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-// 设置开机自启动
+// Set auto startup
 void SetAutoStartup() {
     HKEY hKey;
     if (RegCreateKeyExW(HKEY_CURRENT_USER, 
             L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-            0, nullptr, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, nullptr, &hKey, nullptr) == ERROR_SUCCESS) {
+            0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &hKey, NULL) == ERROR_SUCCESS) {
         wchar_t path[MAX_PATH];
-        GetModuleFileNameW(nullptr, path, MAX_PATH);
+        GetModuleFileNameW(NULL, path, MAX_PATH);
         std::wstring fullPath = L"\"";
         fullPath += path;
         fullPath += L"\"";
@@ -241,38 +242,38 @@ void SetAutoStartup() {
     }
 }
 
-// 主函数
+// Main function
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                     LPWSTR lpCmdLine, int nCmdShow) {
-    // 防止多实例
-    HANDLE hMutex = CreateMutexW(nullptr, TRUE, L"DynamicIsland_Mutex");
+    // Prevent multiple instances
+    HANDLE hMutex = CreateMutexW(NULL, TRUE, L"DynamicIsland_Mutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         return 0;
     }
     
-    // 初始化 COM
-    CoInitialize(nullptr);
+    // Initialize COM
+    CoInitialize(NULL);
     
-    // 设置开机自启
+    // Set auto startup
     SetAutoStartup();
     
-    // 初始化 GDI+
+    // Initialize GDI+
     GdiplusStartupInput gdiplusStartupInput;
-    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, nullptr);
+    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
     
-    // 注册窗口类
+    // Register window class
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = nullptr;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = NULL;
     wc.lpszClassName = L"DynamicIslandClass";
     
     RegisterClassExW(&wc);
     
-    // 创建窗口
+    // Create window
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
     int x = workArea.left + (workArea.right - workArea.left - NORMAL_WIDTH) / 2;
@@ -284,38 +285,38 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         L"DynamicIsland",
         WS_POPUP,
         x, y, NORMAL_WIDTH, NORMAL_HEIGHT,
-        nullptr, nullptr, hInstance, nullptr
+        NULL, NULL, hInstance, NULL
     );
     
     if (!g_hwnd) {
         return 1;
     }
     
-    // 设置透明
+    // Set transparent
     SetLayeredWindowAttributes(g_hwnd, RGB(0, 0, 0), 0, LWA_ALPHA);
     
-    // 显示窗口
+    // Show window
     ShowWindow(g_hwnd, nCmdShow);
     UpdateWindow(g_hwnd);
     
-    // 定时器
-    SetTimer(g_hwnd, 1, 1000, nullptr);
+    // Timer
+    SetTimer(g_hwnd, 1, 1000, NULL);
     
-    // 消息循环
+    // Message loop
     MSG msg;
-    while (GetMessage(&msg, nullptr, 0, 0)) {
+    while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
     
-    // 清理
+    // Cleanup
     GdiplusShutdown(g_gdiplusToken);
     CoUninitialize();
     
     return (int)msg.wParam;
 }
 
-// Windows 入口点
+// Windows entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
     return wWinMain(hInstance, hPrevInstance, GetCommandLineW(), nCmdShow);
