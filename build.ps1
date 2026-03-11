@@ -1,69 +1,94 @@
-# Dynamic Island - Compile to Object File Only
-# No executable will be generated
+# Build Script for Dynamic Island
+# Properly initializes Visual Studio environment
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Dynamic Island - Compile Library" -ForegroundColor Cyan
+Write-Host "  Build Dynamic Island" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Find Visual Studio installation
+# Find Visual Studio and setup environment
 $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-$vsPath = & $vsWhere -latest -requires Microsoft.Component.MSBuild -property installationPath
 
-Write-Host "Visual Studio Path: $vsPath" -ForegroundColor Gray
-
-# Set up VC environment
-$vcVarsAll = "$vsPath\VC\Auxiliary\Build\vcvarsall.bat"
-
-# Get environment variables from vcvarsall.bat
-$envOutput = cmd /c "call `"$vcVarsAll`" amd64 && set"
-foreach ($line in $envOutput) {
-    if ($line -match '^(\w+)=(.*)$') {
-        [Environment]::SetEnvironmentVariable($matches[1], $matches[2])
+if (Test-Path $vsWhere) {
+    $vsPath = & $vsWhere -latest -requires Microsoft.Component.MSBuild -property installationPath
+    if ($vsPath) {
+        $vcVarsAll = "$vsPath\VC\Auxiliary\Build\vcvarsall.bat"
+        if (Test-Path $vcVarsAll) {
+            Write-Host "Setting up Visual Studio environment..." -ForegroundColor Green
+            
+            # Setup environment variables by calling vcvarsall.bat and capturing output
+            $envOutput = cmd /c "call `"$vcVarsAll`" x64 && set"
+            
+            # Parse and set environment variables
+            $envOutput | ForEach-Object {
+                if ($_ -match '^([^=]+)=(.*)$') {
+                    $name = $matches[1]
+                    $value = $matches[2]
+                    Set-Item -Path "Env:\$name" -Value $value -Force
+                }
+            }
+            
+            Write-Host "Environment configured!" -ForegroundColor Green
+        }
     }
 }
 
-Write-Host ""
-Write-Host "Compiler: cl.exe" -ForegroundColor Gray
-Write-Host ""
-
-# Get Windows SDK paths
-$sdkIncludePath = "${env:WindowsSdkDir}Include\${env:WindowsSDKVersion}\um"
-$sdkSharedPath = "${env:WindowsSdkDir}Include\${env:WindowsSDKVersion}\shared"
-
-# Create output directory for object files
-if (-not (Test-Path "obj")) {
-    New-Item -ItemType Directory -Path "obj" | Out-Null
+# Compile resource file
+Write-Host "Compiling resources..." -ForegroundColor Green
+$rcResult = Start-Process -FilePath "rc.exe" -ArgumentList "/nologo", "resources\DynamicIsland.rc" -NoNewWindow -Wait -PassThru -WorkingDirectory (Get-Location)
+if ($rcResult.ExitCode -ne 0) {
+    Write-Host "Resource compilation failed, continuing without resources..." -ForegroundColor Yellow
 }
 
-Write-Host "[1/1] Compiling main.cpp to object file..." -ForegroundColor Cyan
+# Compile
+Write-Host ""
+Write-Host "Compiling src\main.cpp..." -ForegroundColor Green
 
-$compileFlags = "/c /std:c++17 /O2 /EHsc /W3 /nologo /DUNICODE /D_UNICODE /DNOMINMAX /DWIN32_LEAN_AND_MEAN /Zc:__cplusplus"
-
-& cl.exe $compileFlags /Fo:"obj\main.obj" /I"include" /I"$sdkIncludePath" /I"$sdkSharedPath" src\main.cpp
+cl.exe /c /O2 /EHsc /std:c++17 /W4 /nologo /Iinclude /Iresources /utf-8 /Fo:main.obj src\main.cpp
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "Error: Compilation failed!" -ForegroundColor Red
+    Write-Host "Compilation failed!" -ForegroundColor Red
     exit 1
 }
 
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Compilation SUCCESSFUL!" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Output: obj\main.obj (object file only)" -ForegroundColor Green
-Write-Host "No executable was created." -ForegroundColor Yellow
+Write-Host "Compilation successful! Linking..." -ForegroundColor Green
 Write-Host ""
 
-# Verify no .exe files were created
-$exeFiles = Get-ChildItem -Path . -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue
-if ($exeFiles.Count -gt 0) {
-    Write-Host "Warning: Found .exe files:" -ForegroundColor Yellow
-    $exeFiles | ForEach-Object { Write-Host "  $($_.FullName)" }
-    Write-Host ""
+# Link
+if (Test-Path "resources\DynamicIsland.res") {
+    Write-Host "Linking with resources..." -ForegroundColor Green
+    link.exe /nologo /OUT:DynamicIsland.exe /SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup /OPT:REF /OPT:ICF main.obj resources\DynamicIsland.res shell32.lib user32.lib gdi32.lib ole32.lib comctl32.lib dwmapi.lib advapi32.lib
 } else {
-    Write-Host "Verified: No .exe files in project directory" -ForegroundColor Green
-    Write-Host ""
+    Write-Host "Linking without resources..." -ForegroundColor Yellow
+    link.exe /nologo /OUT:DynamicIsland.exe /SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup /OPT:REF /OPT:ICF main.obj shell32.lib user32.lib gdi32.lib ole32.lib comctl32.lib dwmapi.lib advapi32.lib
 }
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Linking failed!" -ForegroundColor Red
+    exit 1
+}
+
+# Cleanup
+if (Test-Path "main.obj") {
+    Remove-Item "main.obj" -Force
+}
+
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  SUCCESS! Created: DynamicIsland.exe" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+$exeSize = (Get-Item "DynamicIsland.exe").Length / 1KB
+Write-Host "Size: $([math]::Round($exeSize, 1)) KB" -ForegroundColor Yellow
+Write-Host "Location: $(Get-Location)\DynamicIsland.exe" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Features:" -ForegroundColor Cyan
+Write-Host "  ✓ Elliptical shape (not rectangle)" -ForegroundColor Green
+Write-Host "  ✓ Auto-updates every second" -ForegroundColor Green
+Write-Host "  ✓ Date on left, time on right" -ForegroundColor Green
+Write-Host "  ✓ Smooth, rounded font" -ForegroundColor Green
+Write-Host "  ✓ Smaller, softer design" -ForegroundColor Green
+Write-Host "  ✓ Modern capsule appearance" -ForegroundColor Green
+Write-Host ""
+Write-Host "Run with: .\DynamicIsland.exe" -ForegroundColor White
+Write-Host ""

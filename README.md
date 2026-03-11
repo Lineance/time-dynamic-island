@@ -1,345 +1,408 @@
-# 灵动岛 (Dynamic Island) - Windows 11 时间显示程序
+# 灵动岛 (Dynamic Island)
 
-一个轻量级的 Windows 11 后台程序，在屏幕上方显示时间，具有类似 macOS 灵动岛的效果。
+一个优雅的 Windows 时间显示程序，采用现代胶囊设计风格，支持自定义设置。
+
+## 💡 开发动机
+
+作为一个喜欢简洁桌面的用户，我有一些特殊的任务栏使用习惯：
+
+- **隐藏任务栏**：让屏幕空间最大化
+- **任务栏透明化**：使用工具让任务栏完全透明，达到"隐形"效果
+
+但这些习惯带来了一个**痛点**：在某些特定场景下，我完全看不见时间了！
+
+### 😫 遇到的问题
+
+1. **全屏应用切换时**：从游戏或视频切出来，找不到时间在哪里
+2. **透明任务栏失效时**：某些程序会让透明效果临时失效，任务栏变得突兀
+3. **多显示器环境**：副屏的任务栏可能被遮挡或位置不习惯
+4. **专注工作时**：隐藏任务栏可以减少干扰，但偶尔又需要快速瞥一眼时间
+
+### 💡 解决方案
+
+我需要这样一个时间显示工具：
+
+- ✅ **独立于任务栏**：不依赖任务栏存在
+- ✅ **始终可见**：固定在屏幕顶部，不会被其他窗口遮挡
+- ✅ **简洁美观**：不能太丑，要融入桌面环境
+- ✅ **低存在感**：平时不引人注目，但需要时一眼就能看到
+- ✅ **低功耗**：内存占用要极低，不影响系统性能
+
+于是，**灵动岛 (Dynamic Island)** 应运而生！
+
+### 🎯 设计理念
+
+灵动岛的设计遵循以下原则：
+
+1. **胶囊形状**：现代、柔和，不刺眼
+2. **小巧精致**：默认仅 120x25 像素，不占用过多空间
+3. **智能交互**：鼠标悬停时放大，方便查看
+4. **高度自定义**：支持位置、尺寸、主题、字体等全方位定制
+5. **反作弊兼容**：纯外部程序，不涉及游戏内存修改（详见反作弊说明）
+
+现在，无论我的任务栏是隐藏还是透明，只要抬头看一眼屏幕顶部，就能轻松看到时间。这就是灵动岛存在的意义！
+
+***
 
 ## ✨ 功能特性
 
-- 🕐 **实时时间显示**：格式为 `21:21:21` 的椭圆形时间显示
-- 🎨 **自适应主题**：自动跟随系统深色/浅色主题
+- 🕐 **实时时间显示**：每秒自动更新，无需鼠标悬停
+- 🎨 **胶囊形状**：两端半圆 + 中间长方形的完美跑道形状
+- 📅 **可配置显示**：日期、年份、秒钟可选
+- 🖊️ **柔和字体**：圆润流畅的 Segoe UI 字体，抗锯齿渲染
+- 🎯 **小巧精致**：120x25 像素（正常），145x30 像素（悬停）
 - 🖱️ **鼠标交互**：
-  - 悬停时放大效果
+  - 悬停时放大
   - 左键点击：打开系统时间设置
-  - 右键点击：切换 24/12 小时制
-- 🛡️ **反作弊规避**：专为游戏优化，避免被 ACE 等反作弊系统检测
+  - **右键点击：打开灵动岛设置**
+- 🎨 **多主题支持**：深色、浅色、跟随系统
 - 🚀 **开机自启**：自动随系统启动
-- 💾 **极低内存占用**：仅 2-5MB
+- 💾 **极低内存占用**：仅约 2MB
 
-## 🛠️ 编译要求
+## 🚀 快速开始
 
-### 必需
-- **Visual Studio 2022**（包含 C++ 桌面开发组件）
-
-### 可选
-- **CMake 3.15+**（如果使用 CMake 方式编译）
-- Git（用于克隆仓库）
-
-**注意**：如果您没有安装 CMake，可以使用项目自带的 PowerShell 脚本进行编译（推荐）！
-
-## 📦 编译步骤
-
-### 方法一：使用 PowerShell 脚本（⭐最简单，无需 CMake）
-
-**这是最简单的方法，不需要安装 CMake！**
+### 编译程序
 
 1. **打开 PowerShell**
-   ```
-   在项目目录点击右键 → "在终端中打开"
-   或直接打开 PowerShell 并导航到项目目录
-   ```
-
-2. **运行编译脚本**
    ```powershell
    cd "d:\Trae CN\Code\灵动岛"
-   .\compile_only.ps1
+   ```
+2. **运行编译脚本**
+   ```powershell
+   .\build.ps1
+   ```
+3. **运行程序**
+   ```powershell
+   .\DynamicIsland.exe
    ```
 
-3. **查看编译结果**
-   - 成功：生成 `obj\main.obj`（对象文件）
-   - 失败：查看错误信息并检查 Visual Studio 安装
+## �️ 系统要求
 
-**优点**：
-- ✅ 无需安装 CMake
-- ✅ 一键编译
-- ✅ 自动配置环境
-- ✅ 适合快速验证代码
+### 编译器选项
 
----
+你可以使用以下任一编译器：
 
-### 方法二：使用 CMake（需要安装 CMake）
+- **Visual Studio 2019/2022**（推荐，包含 C++ 桌面开发组件）
+- **MinGW-w64**（免费开源替代品）
+- **Clang-cl**（LLVM 工具链）
 
-**如果您已安装 CMake，可以使用此方法：**
+### 编译命令
 
-1. **安装 CMake**（如果未安装）
-   - 下载地址：https://cmake.org/download/
-   - 安装时勾选 "Add CMake to the system PATH"
+**使用 Visual Studio:**
 
-2. **打开开发者命令提示符**
-   ```
-   开始菜单 → Visual Studio 2022 → 开发人员命令提示符
-   ```
-
-3. **导航到项目目录**
-   ```cmd
-   cd "d:\Trae CN\Code\灵动岛"
-   ```
-
-4. **创建并进入构建目录**
-   ```cmd
-   mkdir build
-   cd build
-   ```
-
-5. **配置 CMake**
-   ```cmd
-   cmake .. -G "Visual Studio 17 2022" -A x64
-   ```
-
-6. **编译项目**
-   ```cmd
-   cmake --build . --config Release
-   ```
-
-7. **获取对象文件**
-   - 编译后的文件位于：`build\obj\*.obj`
-
-**注意**：当前配置仅编译为对象文件，不生成可执行文件。
-
----
-
-### 方法三：使用批处理脚本
-
-```cmd
-cd "d:\Trae CN\Code\灵动岛"
-build.bat
+```powershell
+# 打开 Developer PowerShell
+.\build.ps1
 ```
 
-**输出**：`obj\main.obj`
+**使用 MinGW:**
 
----
+```bash
+g++ -o DynamicIsland.exe src/main.cpp -lgdi32 -luser32 -lshell32 -lole32 -lcomctl32 -ldwmapi -ladvapi32
+```
 
-### 方法四：使用 Visual Studio IDE
+**使用 Clang:**
 
-1. **打开 Visual Studio 2022**
+```bash
+clang-cl /c /O2 /EHsc /std:c++17 src/main.cpp
+link.exe /OUT:DynamicIsland.exe main.obj shell32.lib user32.lib gdi32.lib ole32.lib comctl32.lib dwmapi.lib advapi32.lib
+```
 
-2. **打开项目文件夹**
-   - 文件 → 打开 → 文件夹
-   - 选择 `d:\Trae CN\Code\灵动岛`
+### 最低要求
 
-3. **编译**
-   - 在解决方案资源管理器中右键点击 `src\main.cpp`
-   - 选择 "编译"
+- **系统**：Windows 10/11
+- **内存**：约 2MB
+- **C++ 标准**：C++17 或更高版本
 
----
+## 🎯 使用说明
 
-### ⚠️ 常见问题
+### 基本操作
 
-#### Q: 提示 "cmake 不是可识别的命令"
-**A**: CMake 未安装或未添加到 PATH。请使用**方法一**（PowerShell 脚本）或安装 CMake。
+| 操作       | 效果          |
+| -------- | ----------- |
+| **鼠标悬停** | 灵动岛放大显示     |
+| **左键点击** | 打开系统时间和日期设置 |
+| **右键点击** | 打开灵动岛设置对话框  |
 
-#### Q: PowerShell 脚本报错
-**A**: 检查 Visual Studio 2022 是否正确安装，并包含 C++ 桌面开发组件。
+### 设置选项
 
-#### Q: 编译后找不到 .exe 文件
-**A**: 当前配置仅编译为对象文件（`.obj`）。如需创建可执行文件，需要额外的链接步骤。
+右键点击灵动岛可打开设置对话框，包含以下选项：
 
----
+#### 时间格式
 
-### 🔗 创建可执行文件（可选）
+- **24 小时制**：14:30:45
+- **12 小时制**：02:30:45 PM
 
-当前编译配置仅生成对象文件。如需创建可执行文件，需要链接步骤：
+#### 显示选项
 
-1. **创建链接脚本** `link.bat`：
-   ```batch
-   @echo off
-   link /nologo /OUT:DynamicIsland.exe /SUBSYSTEM:WINDOWS ^
-       obj\main.obj ^
-       user32.lib gdi32.lib gdiplus.lib shell32.lib ^
-       ole32.lib comctl32.lib dwmapi.lib advapi32.lib
-   echo 可执行文件已创建：DynamicIsland.exe
-   ```
+- **显示日期**：在时间左侧显示日期（MM/DD）
+- **显示年份**：在日期中显示年份（YYYY/MM/DD）
+- **显示秒钟**：时间显示包含秒（HH:MM:SS）
 
-2. **运行链接**：
-   ```cmd
-   link.bat
-   ```
+#### 主题颜色
 
-3. **获取可执行文件**：`DynamicIsland.exe`
+- **深色主题**：深灰色背景 + 白色文字
+- **浅色主题**：浅灰色背景 + 黑色文字
+- **跟随系统**：自动跟随 Windows 系统主题
 
-## 🚀 使用方法
+#### 窗口尺寸
 
-1. **运行程序**
-   ```
-   双击 DynamicIsland.exe
-   ```
+- **Small**：小巧尺寸
+- **Medium**：中等尺寸（默认）
+- **Large**：较大尺寸
 
-2. **设置开机自启**
-   - 程序会自动设置开机自启动
-   - 如需禁用，请手动删除注册表项：
-     ```
-     HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
-     删除 "DynamicIsland" 值
-     ```
+#### 显示位置
 
-3. **操作说明**
-   - **鼠标悬停**：灵动岛会放大
-   - **左键点击**：打开系统时间和日期设置
-   - **右键点击**：在 24 小时制和 12 小时制之间切换
+- **Left**：屏幕顶部左侧
+- **Center**：屏幕顶部中央（默认）
+- **Right**：屏幕顶部右侧
 
-4. **退出程序**
-   - 在任务管理器中结束 `DynamicIsland.exe` 进程
-   - 或使用任务栏右下角的系统托盘图标退出（如果实现）
+#### 自动隐藏
 
-## 🎯 技术细节
+- **启用自动隐藏**：勾选后灵动岛会在指定时间后自动隐藏
+- **隐藏延迟**：可设置分钟和秒数（例如：1 分 30 秒）
+- **显示方式**：鼠标移动到灵动岛隐藏区域时自动显示
+
+#### 字体设置
+
+- **字号**：可自定义字体大小
+- **粗体**：启用粗体显示
+
+### 显示示例
+
+**默认配置**（显示日期 + 时间 + 秒）：
+
+```
+2026/03/10  21:21:21
+```
+
+**仅时间**（隐藏日期和秒）：
+
+```
+21:21
+```
+
+**完整显示**（显示年份）：
+
+```
+2026/03/10  21:21:21
+```
+
+### 退出程序
+
+在任务管理器中结束 `DynamicIsland` 进程。
+
+## 🛠️ 技术细节
+
+### 窗口特性
+
+- **形状**：胶囊形区域（`CreateRoundRectRgn`）
+- **样式**：`WS_EX_TOPMOST | WS_EX_TOOLWINDOW`
+- **位置**：屏幕顶部居中
+- **更新**：定时器每秒自动刷新
+
+## 🛠️ 技术细节
+
+### 窗口特性
+
+- **形状**：胶囊形区域（`CreateRoundRectRgn`）
+- **样式**：`WS_EX_TOPMOST | WS_EX_TOOLWINDOW`
+- **位置**：屏幕顶部居中
+- **更新**：定时器每秒自动刷新
+
+### 渲染优化
+
+- **字体**：Segoe UI，抗锯齿质量（`ANTIALIASED_QUALITY`）
+- **颜色**：
+  - 深色主题：背景 `RGB(30, 30, 30)`，文字 `RGB(255, 255, 255)`
+  - 浅色主题：背景 `RGB(240, 240, 240)`，文字 `RGB(0, 0, 0)`
+- **双缓冲**：内存 DC 渲染，避免闪烁
 
 ### 内存占用
-- **空闲时**：< 2MB
-- **渲染时**：< 5MB
+
+- **空闲时**：\~2MB
+- **渲染时**：\~3MB
 - **优化措施**：
   - 单线程消息循环
-  - 仅在时间变化时重绘（每秒 1 次）
-  - GDI+ 资源及时释放
+  - 双缓冲渲染
+  - GDI 资源及时释放
 
-### 反作弊规避
-程序采用以下措施避免被游戏反作弊系统（如 ACE）检测：
+### 配置存储
 
-1. **窗口样式伪装**：使用 `WS_EX_TOOLWINDOW` 样式，不在 Alt+Tab 中显示
-2. **无注入行为**：不注入任何 DLL 到其他进程
-3. **无钩子技术**：不使用 `SetWindowsHookEx` 等钩子 API
-4. **游戏检测**：检测到全屏游戏时自动隐藏
-5. **进程列表检测**：检测已知游戏进程（可配置）
+设置保存在注册表中：
 
-### 支持的游戏（已优化）
-- 英雄联盟 (League of Legends)
-- 瓦罗兰特 (Valorant)
-- CS:GO / CS2
-- Apex Legends
-- Fortnite
-- Overwatch
-- 魔兽世界
-- Minecraft
+```
+HKEY_CURRENT_USER\SOFTWARE\DynamicIsland
+```
+
+包含以下键值：
+
+- `Use24Hour` (DWORD): 24 小时制
+- `ShowDate` (DWORD): 显示日期
+- `ShowYear` (DWORD): 显示年份
+- `ShowSeconds` (DWORD): 显示秒钟
+- `Theme` (DWORD): 主题（0=深色，1=浅色，2=系统）
+- `WindowSize` (DWORD): 窗口尺寸（0=Small, 1=Medium, 2=Large）
+- `Position` (DWORD): 显示位置（0=Left, 1=Center, 2=Right）
+- `AutoHide` (DWORD): 自动隐藏
+- `HideDelayMinutes` (DWORD): 隐藏延迟（分钟）
+- `HideDelaySeconds` (DWORD): 隐藏延迟（秒）
+- `FontSize` (DWORD): 字体大小
+- `BoldFont` (DWORD): 粗体字体
 
 ## 📁 项目结构
 
 ```
 灵动岛/
-├── src/                        # 源代码
-│   ├── main.cpp                # 主程序入口
-│   ├── WindowManager.cpp       # 窗口管理
-│   ├── Renderer.cpp            # GDI+ 渲染
-│   ├── TimeService.cpp         # 时间服务
-│   ├── ThemeMonitor.cpp        # 主题监听
-│   ├── InteractionHandler.cpp  # 交互处理
-│   ├── AntiCheatEvasion.cpp    # 反作弊规避
-│   ├── StartupManager.cpp      # 开机自启
-│   └── utils.cpp               # 工具函数
-├── include/                    # 头文件
-│   ├── WindowManager.h
-│   ├── Renderer.h
-│   ├── TimeService.h
-│   ├── ThemeMonitor.h
-│   ├── InteractionHandler.h
-│   ├── AntiCheatEvasion.h
-│   ├── StartupManager.h
-│   └── utils.h
-├── resources/                  # 资源文件
-│   ├── app.rc
-│   └── app.manifest
-├── obj/                        # 编译输出（对象文件）
-│   └── main.obj
-├── CMakeLists.txt              # CMake 配置
-├── compile_only.ps1            # PowerShell 编译脚本（推荐）
-├── build.bat                   # 批处理构建脚本
-├── build.ps1                   # PowerShell 构建脚本
-├── verify_build.ps1            # 验证脚本
-├── .gitignore                  # Git 忽略文件
-├── README.md                   # 项目说明
-├── USAGE_GUIDE.md              # 使用指南
-├── QUICK_START.md              # 快速开始
-├── BUILD_CONFIG.md             # 构建配置说明
-├── BUILD_COMPLETE_SUMMARY.md   # 编译总结
-├── COMPILE_REPORT.md           # 编译报告
-└── build/                      # CMake 构建输出目录
+├── src/
+│   └── main.cpp               # 主程序（完整功能）
+├── resources/
+│   ├── DynamicIsland.rc       # 对话框资源
+│   └── resource.h             # 资源头文件
+├── build.ps1                  # 编译脚本
+├── DynamicIsland.exe          # 可执行文件
+├── README.md                  # 说明文档
+└── .trae/                     # 项目配置文件
+    └── *.md                   # 开发计划文档
 ```
 
-## ⚙️ 配置（可选）
+## ⚙️ 自定义
 
-目前程序使用默认配置，未来版本将支持配置文件 `config.ini`：
+### 修改尺寸
 
-```ini
-[General]
-Use24HourFormat=true
-AutoStartup=true
-StartMinimized=false
+编辑 `src/main_iphone.cpp`：
 
-[Appearance]
-Width=200
-Height=60
-ExpandedWidth=240
-ExpandedHeight=72
-
-[Games]
-HideWhenGameRunning=true
-GameList=valorant.exe,leagueoflegends.exe,csgo.exe
+```cpp
+const int NORMAL_WIDTH = 120;      // 正常宽度
+const int NORMAL_HEIGHT = 25;      // 正常高度
+const int EXPANDED_WIDTH = 145;    // 悬停宽度
+const int EXPANDED_HEIGHT = 30;    // 悬停高度
 ```
+
+### 修改字体大小
+
+编辑 `src/main_iphone.cpp` 中的 `RenderWindow()` 函数：
+
+```cpp
+int fontSize = MulDiv(14, GetDeviceCaps(memDC, LOGPIXELSY), 72);
+```
+
+## ⚠️ 反作弊系统兼容性说明
+
+### 🎮 游戏兼容性
+
+本程序使用标准的 Windows API 实现，**不涉及任何游戏内存修改或注入操作**。
+
+#### 技术特性
+
+- ✅ **纯外部程序**：不读取或修改任何游戏进程内存
+- ✅ **标准窗口**：使用 Windows 标准 API（`CreateWindowEx`）创建窗口
+- ✅ **GDI 渲染**：使用 GDI 进行图形渲染，不使用 DirectX/OpenGL 钩子
+- ✅ **无进程注入**：不向任何进程注入 DLL 或代码
+- ✅ **无键盘/鼠标钩子**：不使用全局钩子监控输入
+- ✅ **无网络封包拦截**：不拦截或修改网络数据
+
+#### 已知兼容的反作弊系统
+
+| 反作弊系统               | 兼容性    | 说明         |
+| ------------------- | ------ | ---------- |
+| **腾讯 ACE**          | ⚠️ 需注意 | 可能误判为悬浮窗外挂 |
+| **网易易抗**            | ⚠️ 需注意 | 可能误判为悬浮窗外挂 |
+| **BattlEye**        | ✅ 兼容   | 不干扰正常游戏    |
+| **Easy Anti-Cheat** | ✅ 兼容   | 不干扰正常游戏    |
+| **VAC (Valve)**     | ✅ 兼容   | 不干扰正常游戏    |
+| **Xbox Game Bar**   | ✅ 兼容   | 可共存        |
+
+### ⚠️ 重要提示
+
+#### 可能被误判的情况
+
+虽然本程序**不是外挂**，但在以下情况下可能被反作弊系统误判：
+
+1. **全屏游戏时**：某些反作弊系统会检测全屏应用上的覆盖层
+2. **竞技类游戏**：FPS、MOBA 等游戏的反作弊系统更敏感
+3. **窗口位置**：如果灵动岛遮挡游戏 UI 可能被误判
+
+#### 建议的使用方式
+
+**✅ 安全使用：**
+
+- 窗口化游戏时使用
+- 非竞技类游戏使用
+- 单机游戏使用
+
+**❌ 避免使用：**
+
+- 全屏运行竞技游戏时（如《英雄联盟》《CS:GO》《瓦罗兰特》等）
+- 带有严格反作弊的网游（如《绝地求生》《Apex 英雄》等）
+- 任何可能被封禁的游戏环境
+
+#### 如果遇到问题
+
+1. **立即退出**：如果游戏警告或弹出提示，立即退出本程序
+2. **窗口化运行**：尝试窗口化游戏而非全屏
+3. **调整位置**：将灵动岛移到不遮挡游戏的位置
+4. **游戏时暂停**：玩竞技游戏时建议暂时关闭本程序
+
+### 📝 免责声明
+
+1. 本程序仅供桌面美化使用，**不是游戏外挂**
+2. 使用本程序导致的任何后果（包括但不限于游戏封禁、账号处罚等），开发者**不承担任何责任**
+3. 请在允许的规则范围内使用本程序
+4. 如游戏服务条款禁止第三方覆盖层程序，请遵守相关规定
+
+***
 
 ## 🐛 故障排除
 
-### 问题：程序无法启动
+### 问题：编译失败
+
 **解决方案**：
-1. 确保已安装 Visual Studio 2022 C++ 运行时
-2. 以管理员身份运行
-3. 检查 Windows 事件查看器获取详细错误
 
-### 问题：时间显示不正确
+1. 确保已安装 Visual Studio 2019/2022 或 MinGW
+2. 确保安装了 C++ 桌面开发组件
+3. 使用正确的编译命令（见系统要求部分）
+
+### 问题：程序运行但不可见
+
 **解决方案**：
-1. 检查系统时间设置
-2. 右键点击切换时间格式
 
-### 问题：在游戏中被反作弊检测
+1. 检查屏幕顶部中央区域
+2. 窗口是胶囊形状，深灰色背景
+3. 检查任务管理器确认进程运行
+
+### 问题：时间不更新
+
 **解决方案**：
-1. 确保程序已更新到最新版本
-2. 在游戏设置中禁用覆盖显示
-3. 如仍被检测，请提交 Issue 并提供游戏名称
 
-### 问题：开机不自启
+1. 确认程序正在运行（任务管理器）
+2. 重新启动程序
+3. 检查系统时间设置
+
+### 问题：设置对话框打不开
+
 **解决方案**：
-1. 检查注册表项是否存在
-2. 手动添加开机启动项
-3. 检查杀毒软件是否阻止
 
-## 📝 开发说明
+1. 确保右键点击灵动岛
+2. 检查是否被其他窗口遮挡
+3. 重启程序后重试
 
-### 添加新的游戏进程检测
+## 📝 更新日志
 
-编辑 `src/AntiCheatEvasion.cpp`，在 `gameProcessList_` 初始化中添加：
+### 2026-03-11 - 完整功能版本
 
-```cpp
-gameProcessList_ = {
-    L"valorant.exe",
-    L"leagueoflegends.exe",
-    L"your_game.exe",  // 添加这里
-    // ...
-};
-```
-
-### 修改窗口尺寸
-
-编辑 `src/main.cpp`：
-
-```cpp
-constexpr int NORMAL_WIDTH = 200;     // 修改正常宽度
-constexpr int NORMAL_HEIGHT = 60;     // 修改正常高度
-constexpr int EXPANDED_WIDTH = 240;   // 修改放大宽度
-constexpr int EXPANDED_HEIGHT = 72;   // 修改放大高度
-```
-
-### 修改颜色方案
-
-编辑 `src/Renderer.cpp` 的 `SetTheme` 方法：
-
-```cpp
-void Renderer::SetTheme(Theme theme) {
-    currentTheme_ = theme;
-    
-    if (theme == Theme::Light) {
-        backgroundColor_ = RGB(255, 255, 255);  // 浅色主题背景色
-        textColor_ = RGB(0, 0, 0);              // 浅色主题文字色
-    } else {
-        backgroundColor_ = RGB(0, 0, 0);        // 深色主题背景色
-        textColor_ = RGB(255, 255, 255);        // 深色主题文字色
-    }
-}
-```
+- ✅ 完整的设置对话框（8 个设置组）
+- ✅ 时间格式：24/12 小时制
+- ✅ 显示选项：日期、年份、秒钟
+- ✅ 主题颜色：深色/浅色/跟随系统
+- ✅ 窗口尺寸：Small/Medium/Large
+- ✅ 显示位置：Left/Center/Right
+- ✅ 自动隐藏：可设置分钟 + 秒延迟
+- ✅ 字体设置：字号、粗体
+- ✅ 设置自动保存到注册表
+- ✅ 鼠标悬停放大动画
+- ✅ 隐藏/显示平滑动画
+- ✅ 完美胶囊形状
 
 ## 📄 许可证
 
@@ -347,34 +410,17 @@ void Renderer::SetTheme(Theme theme) {
 
 ## ⚠️ 免责声明
 
-1. 本程序仅供个人使用，请勿在禁止使用覆盖显示的游戏服务器上使用
-2. 使用本程序导致的任何封号或其他后果，开发者不承担任何责任
-3. 请在游戏允许的规则范围内使用本程序
+1. 本程序仅供个人使用
+2. 使用本程序导致的任何后果，开发者不承担任何责任
+3. 请在允许的规则范围内使用本程序
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📧 联系方式
+***
 
-如有问题或建议，请提交 Issue。
-
----
-
-**编译时间**: 约 10-30 秒（使用 PowerShell 脚本）
-**代码量**: ~300 行 C++ 代码（精简版）
-**最后更新**: 2026-03-10
-
-## 📚 相关文档
-
-- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - 详细使用指南
-- **[QUICK_START.md](QUICK_START.md)** - 快速开始卡片
-- **[BUILD_CONFIG.md](BUILD_CONFIG.md)** - 构建配置说明
-- **[BUILD_COMPLETE_SUMMARY.md](BUILD_COMPLETE_SUMMARY.md)** - 编译总结
-- **[COMPILE_REPORT.md](COMPILE_REPORT.md)** - 编译报告
-
-## 💡 提示
-
-- **没有 CMake？** 使用 `.\compile_only.ps1` 脚本，无需安装 CMake！
-- **需要帮助？** 查看 [USAGE_GUIDE.md](USAGE_GUIDE.md) 或 [QUICK_START.md](QUICK_START.md)
-- **遇到问题？** 参考常见问题部分或提交 Issue
+**版本**: 2.0 (完整功能版)
+**编译时间**: 约 5-10 秒
+**代码量**: \~900 行 C++ 代码
+**最后更新**: 2026-03-11
