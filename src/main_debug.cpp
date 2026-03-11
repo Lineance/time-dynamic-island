@@ -1,10 +1,9 @@
-// Dynamic Island - Source Code
-// Compile-only build (no executable)
-// Simplified version for compilation testing
+// Dynamic Island - Debug Version
+// 修复窗口可见性问题
 
 #include <windows.h>
 #include <shellapi.h>
-#include <objbase.h>  // For CoInitialize/CoUninitialize
+#include <objbase.h>
 #include <string>
 #include <chrono>
 #include <sstream>
@@ -75,7 +74,7 @@ std::wstring GetTimeString() {
 // Toggle time format
 void ToggleTimeFormat() {
     g_use24Hour = !g_use24Hour;
-    RenderWindow();
+    InvalidateRect(g_hwnd, NULL, TRUE);
 }
 
 // Open time settings
@@ -107,24 +106,35 @@ void UpdateWindowSize(int width, int height) {
                  SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-// Render window (placeholder - actual rendering would use GDI+)
+// Render window
 void RenderWindow() {
-    // Simplified rendering for compilation test
-    // In production, this would use GDI+ for anti-aliased rendering
-    HDC hdc = GetDC(g_hwnd);
+    PAINTSTRUCT ps;
+    HDC hdc = BeginPaint(g_hwnd, &ps);
+    
+    if (hdc == NULL) {
+        return;
+    }
+    
+    // Get client area
+    RECT clientRect;
+    GetClientRect(g_hwnd, &clientRect);
+    
+    // Create memory DC for double buffering
+    HDC memDC = CreateCompatibleDC(hdc);
+    HBITMAP memBitmap = CreateCompatibleBitmap(hdc, clientRect.right, clientRect.bottom);
+    HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
     
     // Clear background
-    RECT rect;
-    GetClientRect(g_hwnd, &rect);
     HBRUSH bgBrush = CreateSolidBrush(GetBackgroundColor());
-    FillRect(hdc, &rect, bgBrush);
+    FillRect(memDC, &clientRect, bgBrush);
     DeleteObject(bgBrush);
     
     // Draw time text
     std::wstring timeStr = GetTimeString();
-    SetTextColor(hdc, GetTextColor());
-    SetBkMode(hdc, TRANSPARENT);
+    SetTextColor(memDC, GetTextColor());
+    SetBkMode(memDC, TRANSPARENT);
     
+    // Create font
     HFONT font = CreateFontW(
         g_height / 2, 0, 0, 0, FW_NORMAL,
         FALSE, FALSE, FALSE,
@@ -133,25 +143,31 @@ void RenderWindow() {
         L"Segoe UI"
     );
     
-    HFONT oldFont = (HFONT)SelectObject(hdc, font);
-    DrawTextW(hdc, timeStr.c_str(), -1, &rect, 
+    HFONT oldFont = (HFONT)SelectObject(memDC, font);
+    
+    // Draw centered text
+    DrawTextW(memDC, timeStr.c_str(), -1, &clientRect, 
               DT_CENTER | DT_VCENTER | DT_SINGLELINE);
     
-    SelectObject(hdc, oldFont);
+    // Copy from memory DC to screen DC
+    BitBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, 0, SRCCOPY);
+    
+    // Cleanup
+    SelectObject(memDC, oldFont);
     DeleteObject(font);
-    ReleaseDC(g_hwnd, hdc);
+    SelectObject(memDC, oldBitmap);
+    DeleteObject(memBitmap);
+    DeleteDC(memDC);
+    
+    EndPaint(g_hwnd, &ps);
 }
 
 // Window procedure
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
-    case WM_PAINT: {
-        PAINTSTRUCT ps;
-        BeginPaint(hwnd, &ps);
+    case WM_PAINT:
         RenderWindow();
-        EndPaint(hwnd, &ps);
         return 0;
-    }
     
     case WM_ERASEBKGND:
         return TRUE;
@@ -227,6 +243,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     // Prevent multiple instances
     HANDLE hMutex = CreateMutexW(NULL, TRUE, L"DynamicIsland_Mutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        MessageBoxW(NULL, L"Dynamic Island is already running!", L"Info", MB_OK | MB_ICONINFORMATION);
         return 0;
     }
     
@@ -245,36 +262,46 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszClassName = L"DynamicIslandClass";
+    wc.hIcon = NULL;
+    wc.hIconSm = NULL;
     
-    RegisterClassExW(&wc);
+    if (!RegisterClassExW(&wc)) {
+        MessageBoxW(NULL, L"Failed to register window class!", L"Error", MB_OK | MB_ICONERROR);
+        return 1;
+    }
     
-    // Create window
+    // Calculate window position
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
     int x = workArea.left + (workArea.right - workArea.left - NORMAL_WIDTH) / 2;
     int y = workArea.top + 10;
     
+    // Create window with visible style
     g_hwnd = CreateWindowExW(
-        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT,
+        WS_EX_TOPMOST | WS_EX_TOOLWINDOW,  // Removed LAYERED and TRANSPARENT for now
         L"DynamicIslandClass",
         L"DynamicIsland",
-        WS_POPUP,
+        WS_POPUP | WS_VISIBLE,  // Added WS_VISIBLE
         x, y, NORMAL_WIDTH, NORMAL_HEIGHT,
         NULL, NULL, hInstance, NULL
     );
     
     if (!g_hwnd) {
+        DWORD error = GetLastError();
+        wchar_t errorMsg[256];
+        swprintf_s(errorMsg, 256, L"Failed to create window! Error code: %d", error);
+        MessageBoxW(NULL, errorMsg, L"Error", MB_OK | MB_ICONERROR);
         return 1;
     }
     
-    // Set transparent
-    SetLayeredWindowAttributes(g_hwnd, RGB(0, 0, 0), 0, LWA_ALPHA);
-    
     // Show window
-    ShowWindow(g_hwnd, nCmdShow);
+    ShowWindow(g_hwnd, SW_SHOW);
     UpdateWindow(g_hwnd);
     
-    // Timer
+    // Bring to front
+    SetForegroundWindow(g_hwnd);
+    
+    // Timer for updating time
     SetTimer(g_hwnd, 1, 1000, NULL);
     
     // Message loop

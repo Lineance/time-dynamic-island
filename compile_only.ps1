@@ -36,9 +36,26 @@ Write-Host "(Compile only - no linking, no executable)" -ForegroundColor Yellow
 Write-Host ""
 
 # Compile with /c flag (compile only, no linking)
-$flags = "/c /O2 /EHsc /W3 /nologo /DUNICODE /D_UNICODE /DNOMINMAX /DWIN32_LEAN_AND_MEAN /Zc:__cplusplus /std:c++17"
+# Each flag must be a separate argument
+$compilerArgs = @(
+    "/c"           # Compile only
+    "/O2"          # Optimize
+    "/EHsc"        # Enable C++ exceptions
+    "/W3"          # Warning level 3
+    "/nologo"      # Suppress copyright message
+    "/DUNICODE"
+    "/D_UNICODE"
+    "/DNOMINMAX"
+    "/DWIN32_LEAN_AND_MEAN"
+    "/Zc:__cplusplus"
+    "/std:c++17"
+    "/Fo:obj\main.obj"
+    "/I$sdkInclude"
+    "/I$sdkShared"
+    "src\main.cpp"
+)
 
-& cl.exe $flags /Fo:"obj\main.obj" /I"$sdkInclude" /I"$sdkShared" src\main.cpp
+& cl.exe @compilerArgs
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
